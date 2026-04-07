@@ -1,0 +1,473 @@
+
+
+===== PAGE 1 =====
+FADEMEM: BIOLOGICALLY-INSPIRED FORGETTING FOR EFFICIENT AGENT
+MEMORY
+Lei Wei1,2*, Xiao Peng1B*, Xu Dong2*, Niantao Xie2, Bin Wang2
+1Alibaba International Digital Commerce Group
+2School of Software and Microelectronics, Peking University
+ABSTRACT
+Large language models deployed as autonomous agents face crit-
+ical memory limitations, lacking selective forgetting mechanisms
+that lead to either catastrophic forgetting at context boundaries or
+information overload within them. While human memory naturally
+balances retention and forgetting through adaptive decay processes,
+current AI systems employ binary retention strategies that preserve
+everything or lose it entirely. We propose FadeMem, a biologically-
+inspired agent memory architecture that incorporates active forget-
+ting mechanisms mirroring human cognitive efficiency. FadeMem
+implements differential decay rates across a dual-layer memory hi-
+erarchy, where retention is governed by adaptive exponential decay
+functions modulated by semantic relevance, access frequency, and
+temporal patterns. Through LLM-guided conflict resolution and in-
+telligent memory fusion, our system consolidates related informa-
+tion while allowing irrelevant details to fade. Experiments on Multi-
+Session Chat, LoCoMo, and LTI-Bench demonstrate superior multi-
+hop reasoning and retrieval with 45% storage reduction, validating
+the effectiveness of biologically-inspired forgetting in agent memory
+systems.
+Index Terms—Large Language Models, Agent Memory, Long-
+Term Context, Adaptive Memory Management
+1. INTRODUCTION
+The advent of large language models (LLMs) has revolutionized AI
+systems’ ability to process and generate human-like text, yet their
+practical deployment as autonomous agents remains constrained by
+fundamental memory limitations [1, 2, 3]. Recent advances in agent
+memory architectures have explored various approaches to extend
+context windows and maintain conversation history, from retrieval-
+augmented generation (RAG) systems that leverage external knowl-
+edge bases [4, 5] to memory-augmented neural networks that in-
+corporate differentiable memory modules [6, 7, 8, 9]. These devel-
+opments have enabled agents to handle increasingly complex tasks
+requiring long-term context retention, multi-turn interactions, and
+knowledge accumulation across sessions [10, 11].
+However, existing agent memory architectures suffer from a crit-
+ical flaw: they lack selective forgetting mechanisms, causing either
+catastrophic forgetting at context boundaries or information over-
+load within them [12, 13, 14, 15]. Current agent memory systems
+predominantly operate on simplistic storage-and-retrieval paradigms
+that treat all information with equal importance, leading to context
+windows cluttered with irrelevant details and degraded performance
+BCorresponding author.
+* These authors contributed equally to this research.as memory scales. While human memory elegantly balances reten-
+tion and forgetting through natural decay processes, where unim-
+portant information gradually fades while significant memories are
+reinforced, current AI systems employ binary retention strategies
+that either preserve everything within their capacity or lose it en-
+tirely [16, 17]. This limitation becomes increasingly problematic as
+agents handle longer interactions and accumulate vast amounts of
+potentially redundant or outdated information. The biological inspi-
+ration from Ebbinghaus’s forgetting curve reveals that human mem-
+ory strength follows predictable exponential decay patterns modu-
+lated by factors such as repetition, emotional significance, and rel-
+evance [18]. This natural forgetting is not a weakness but an adap-
+tive feature that prevents cognitive overload, maintains information
+relevance, and enables efficient generalization by removing specific
+details while preserving important patterns [19].
+To address these fundamental limitations, we propose Fade-
+Mem, a biologically-inspired agent memory architecture that in-
+corporates active forgetting mechanisms to mirror human cognitive
+efficiency [20, 21]. Our system implements differential decay rates
+across a dual-layer memory hierarchy, where each memory’s reten-
+tion is governed by adaptive exponential decay functions modulated
+by semantic relevance, access frequency, and temporal patterns [22].
+Through LLM-guided conflict resolution and intelligent memory
+fusion, our architecture naturally consolidates related information
+while allowing irrelevant details to fade, achieving a dynamic bal-
+ance between memory capacity and retrieval precision. Our con-
+tributions can be summarized as follows: (1) We present the first
+dual-layer biologically inspired agent memory with adaptive forget-
+ting. (2) We devise a unified framework with LLM-guided conflict
+resolution and memory fusion that enforces temporal consistency
+and aggressively compresses redundancy, yielding compact, coher-
+ent memory states. (3) Extensive experiments on Multi-Session
+Chat, LoCoMo, and LTI-Bench show superior multi-hop reasoning
+and retrieval with large storage savings, and thorough ablations
+validate each component’s impact.
+2. METHODOLOGY
+2.1. Dual-Layer Memory Architecture with Differential Forget-
+ting
+Inspired by human memory systems, we design a dual-layer archi-
+tecture that mimics the differential forgetting rates observed in bio-
+logical memory, as shown in Fig. 1. Each memorym iat timetis
+represented as:
+mi(t) = (c i, si, vi(t), τ i, fi)(1)
+wherec iis the content embedding,s iis the original text,v i(t)∈
+[0,1]is the memory strength,τ iis the creation timestamp, andf iarXiv:2601.18642v2  [cs.AI]  6 Feb 2026
+
+===== PAGE 2 =====
+Fig. 1. Overview of FadeMem architecture featuring a dual-layer memory hierarchy with adaptive decay mechanisms, LLM-guided conflict
+resolution, and intelligent memory fusion for efficient long-term agent memory management.
+is the access frequency. The memory importance score determines
+layer assignment:
+Ii(t) =α·rel(c i, Qt) +β·fi
+1 +f i+γ·recency(τ i, t)(2)
+whereQ trepresents recent context, the frequency term follows a
+saturating function to prevent over-weighting, and recency is defined
+as recency(τ i, t) = exp(−δ(t−τ i)). In practice, we replace the
+raw countf iwith an exponentially time-decayed access rate ˜fi=P
+jexp(−κ(t−t j))to emphasize recent accesses. Memories are
+dynamically assigned to layers based on importance:
+• Long-term Memory Layer (LML): High-importance memo-
+ries with slow decay
+• Short-term Memory Layer (SML): Low-importance memo-
+ries with rapid decay
+Layer transitions occur when:
+Layer(m i) =(
+LML ifI i(t)≥θ promote
+SML ifI i(t)< θ demote(3)
+This allows memories to migrate between layers as their importance
+evolves over time. The thresholdsθ promote andθ demote are determined
+through grid search on validation data. Usingθ promote > θ demote in-
+troduces hysteresis that prevents oscillation.
+2.2. Biologically-Inspired Forgetting Curves
+We measure time in days, consistent with our 30-day evaluation
+setup. We model memory decay using differential exponential
+functions that simulate human forgetting patterns, consistent with
+Ebbinghaus’s forgetting curve:
+vi(t) =v i(0)·exp
+−λi·(t−τ i)βi
+(4)The decay rate adapts to memory importance:
+λi=λ base·exp(−µ·I i(t))(5)
+whereλ baseapproximates human short-term memory decay rates and
+µmodulates the importance effect. The shape parameterβ idepends
+on the memory layer:
+βi=(
+0.8ifm i∈LML (sub-linear decay)
+1.2ifm i∈SML (super-linear decay)(6)
+These values mirror biological memory consolidation where long-
+term memories exhibit slower, more gradual decay. Memory con-
+solidation occurs during access, simulating the strengthening effect
+observed in human memory:
+vi(t+) =v i(t) + ∆v·(1−v i(t))·exp(−n i/N)(7)
+where∆vis the base reinforcement strength,n icounts accesses
+within a sliding window ofWdays, andNimplements diminishing
+returns consistent with spacing effects in human learning. Memories
+undergo automatic pruning when their strength falls belowϵ pruneor
+they remain dormant beyondT maxdays.
+Half-lifeWith time measured in days, the half-life of memorym i
+under our model is
+t1/2(i) =
+ln 2
+λi1/βi, λ i=λ baseexp(−µI i(t)).
+AtIi(t) = 0, this givest 1/2≈11.25days for LML (β i= 0.8) and
+t1/2≈5.02days for SML (β i= 1.2) whenλ base= 0.1.
+2.3. Memory Conflict Resolution
+When new information arrives, we detect and resolve conflicts
+through semantic analysis and LLM-based reasoning. For each new
+
+===== PAGE 3 =====
+memorym new, we retrieve semantically similar memories:
+S={m i:sim(c new, ci)> θ sim}(8)
+where sim(·)is cosine similarity onℓ 2-normalized embeddings. For
+eachm i∈ S, an LLM examines(s new, si)and classifies their re-
+lationship into one of four categories in text:compatible,contra-
+dictory,subsumes, orsubsumed. We then apply the corresponding
+resolution strategy:
+Compatible: Both memories coexist, while the existing mem-
+ory’s importance is reduced by redundancy:
+Ii=Ii· 
+1−ω·sim(c new, ci)
+.(9)
+Contradictory: Apply competitive dynamics where newer in-
+formation suppresses older. We use a window-normalized age dif-
+ference withW agedays:
+vi(t) =v i(t)·exp
+−ρ·clip 
+(τnew−τi)/W age,0,1
+.(10)
+Subsumes/Subsumed: The more general memory absorbs the
+specific one via LLM-guided merging (content is consolidated; re-
+dundant details are compressed). The parametersωandρcontrol
+redundancy penalty and suppression strength respectively, calibrated
+through ablation studies.
+2.4. Adaptive Memory Fusion
+To maintain efficiency while preserving information integrity, we
+implement LLM-guided fusion for related memories. Fusion can-
+didates are identified through temporal-semantic clustering:
+Ck={m i:sim(c i, ck)> θ fusion∧ |τi−τk|< T window}(11)
+whereθ fusion ensures semantic coherence andT window maintains tem-
+poral locality. For clusters exceeding a size threshold, we perform
+intelligent fusion via LLM that preserves unique information, tem-
+poral progression, and causal relationships. The fused memory in-
+herits aggregated properties:
+vfused(0) = max
+i∈Ckvi(t) +ϵ·var({v i})(12)
+where the strength combines the maximum individual strength with
+a variance-based bonus, reflecting that diverse supporting memories
+create stronger consolidation. We clipv fusedto[0,1].
+λfused=λbase
+1 + log(|C k|)(13)
+During fusion we setλ i←λ base·ξfused·exp(−µI i)withξ fused=
+1/(1 + log|C k|). The reduced decay rate for fused memories re-
+flects their consolidated importance. Information preservation is val-
+idated through LLM verification with thresholdθ preserve . If preserva-
+tion falls below threshold, fusion is rejected. The complete memory
+evolution follows:
+Mt+∆t =Fusion(Resolution(Decay(M t,∆t)∪ {m new}))(14)
+This creates an adaptive system that naturally forgets unimportant
+information while strengthening and consolidating important mem-
+ories, mirroring human cognitive processes. All hyperparameters
+were determined through systematic ablation studies, balancing re-
+tention quality against computational efficiency.3. EXPERIMENTS
+3.1. Experimental Setup
+DatasetsWe evaluate our approach on three diverse datasets that
+capture different aspects of long-term agent memory requirements.
+We use Multi-Session Chat (MSC) [23] containing 5,000 multi-
+session dialogues spanning up to 5 sessions per user, with an average
+context length of 1,614 tokens per session. For long-context eval-
+uation, we employ LoCoMo [24], focusing on multi-hop reasoning
+across extended contexts. Additionally, we construct a synthetic
+long-term interaction dataset (LTI-Bench) simulating 30-day agent-
+user interactions with controlled information evolution patterns,
+containing 10,780 interaction sequences with explicit temporal de-
+pendencies and contradiction scenarios.
+BaselinesWe compare against three categories of memory man-
+agement approaches: (1)Fixed-window methods: including context
+windows of 4K, 8K, and 16K tokens with FIFO eviction [10, 2];
+(2)RAG-based systems: LangChain Memory with default configu-
+rations; (3)Specialized agent memory: Mem0 [11] as our primary
+baseline, representing state-of-the-art unified memory layers, and
+MemGPT [25] with hierarchical memory management.
+Evaluation Metrics.We assess performance across multiple dimen-
+sions. For memory efficiency, we measure Storage Reduction Rate
+(SRR) as SRR= 1−|M retained|/|M total|, quantifying the proportion
+of memory saved through intelligent forgetting. Retrieval quality
+is evaluated through Relevance Precision@K (RP@K), measuring
+the precision of top-K retrieved memories. We also compute Tem-
+poral Consistency Score (TCS) to assess chronological coherence
+in memory retrieval, ranging from 0 to 1 where higher values indi-
+cate better temporal ordering. For task performance, we report F1
+scores on downstream tasks, particularly focusing on multi-hop rea-
+soning capabilities. Additionally, we measure Factual Consistency
+Rate (FCR) via LLM-based fact checking [26] to ensure memory
+coherence after updates and conflict resolution. For conflict reso-
+lution evaluation, we report accuracy (Acc.) as the rate of correct
+strategy selection and consistency (Cons.) as the factual coherence
+maintained post-resolution.
+Implementation DetailsOur system employs GPT-4o-mini [27] for
+conflict resolution and memory fusion operations, with embeddings
+generated using text-embedding-3-small. Key hyperparameters de-
+termined through grid search on validation sets include:λ base= 0.1,
+θpromote = 0.7,θ demote = 0.3, andθ fusion= 0.75. All experiments use
+a dual-layer architecture with maximum capacities of 1,000 mem-
+ories in LML and 500 in SML. Statistical significance is assessed
+using paired t-tests withp <0.05.
+3.2. Memory Retention and Forgetting Dynamics
+We evaluate whether our biologically-inspired forgetting effectively
+balances retention with efficiency using 30-day simulated interac-
+tions on LTI-Bench. Table 1 shows retention rates for different in-
+formation categories.
+Our approach achieves 82.1% retention of critical facts using
+only 55.0% storage. Important memories exhibit3–5×slower decay
+than baseline, with 23% of low-importance memories promoted to
+LML based on access patterns.
+3.3. Conflict Resolution Performance
+We inject 4075 controlled conflicts on LTI-Bench across three types
+to evaluate LLM-guided resolution. Table 2 reports accuracy and
+post-resolution consistency.
+
+===== PAGE 4 =====
+Table 1. Memory retention analysis onLTI-Benchafter 30
+days of continuous interaction. Critical facts include user prefer-
+ences/constraints; contextual info includes topics/states.
+Method Critical Facts Contextual Info Storage Used
+Fixed-16K 50.2% 44.8% 100%
+LangChain 71.2% 65.3% 100%
+Mem0 78.4% 69.1% 100%
+MemGPT 75.6% 62.8% 85.3%
+FadeMem 82.1% 71.0% 55.0%
+Table 2. Conflict resolution onLTI-Benchacross types. Acc.: cor-
+rect strategy selection; Cons.: factual coherence after resolution.
+MethodContradiction Update Overlap
+Acc. Cons. Acc. Cons. Acc. Cons.
+FIFO - 45.2% - 73.1% - 61.3%
+Mem0 62.3% 71.4% 84.7% 82.3% 45.6% 73.8%
+MemGPT 58.7% 68.9% 81.2% 79.6% 51.3% 75.4%
+FadeMem 66.2% 78.0% 87.1% 86.5% 53.4% 76.8%
+Our LLM-guided mechanism achieves 68.9% macro-averaged
+accuracy and 80.4% macro-averaged consistency across the three
+conflict types. The temporal suppression effectively favors recent
+information while maintaining historical context.
+3.4. Cross-Dataset Evaluation
+To demonstrate generalizability, we evaluate on MSC for conversa-
+tional memory and LoCoMo for long-context reasoning. Table 3
+shows performance across different evaluation metrics.
+Table 3. Results onMSCandLoCoMo. MSC reports RP@10
+and TCS; LoCoMo reports multi-hop F1, Factual Consistency Rate
+(FCR), and Storage Reduction Rate (SRR).
+MethodMSC LoCoMo
+RP@10↑TCS↑F1↑FCR↑SRR↑
+Fixed-16K 58.7% 0.71 5.17 78.9% 0.00
+LangChain 71.5% 0.77 25.75 81.2% 0.00
+Mem0 74.8% 0.79 28.37 83.6% 0.00
+MemGPT 73.1% 0.78 9.46 82.9% 0.15
+FadeMem 77.2% 0.82 29.43 85.9% 0.45
+Our approach consistently outperforms baselines on both datasets.
+On MSC, we achieve 77.2% RP@10, demonstrating superior re-
+trieval of relevant conversational history. The TCS of 0.82 indicates
+better temporal coherence across multi-session interactions. On
+LoCoMo, our multi-hop F1 score of 29.43 shows effective long-
+context reasoning capabilities, surpassing Mem0 (28.37) and signif-
+icantly outperforming MemGPT (9.46). Notably, we achieve 85.9%
+factual consistency rate while maintaining 45% storage reduction
+(SRR=0.45) through intelligent forgetting.
+3.5. Ablation Study
+We conduct ablation studies on LoCoMo to analyze the contribu-
+tion of each component in our memory management framework, as
+Fig. 2. Ablation study results onLoCoMoacross different task
+types. Each bar shows F1 scores when removing specific compo-
+nents compared to the full model.
+illustrated in Fig. 2.
+The ablation results demonstrate the critical importance of each
+component. Removing the dual-layer architecture (w/o LML-SML)
+causes significant performance degradation across all tasks, with
+multi-hop F1 dropping from 29.43 to 19.45 (33.9% decrease), high-
+lighting its role in effectively separating long-term and short-term
+memories. The memory fusion component proves essential for
+maintaining performance, as its removal (w/o Fusion) results in the
+most severe degradation, with multi-hop F1 plummeting to 13.63
+(53.7% decrease). Conflict resolution (w/o Conflict) also plays a
+vital role, particularly for maintaining factual consistency—its ab-
+sence reduces multi-hop F1 to 22.88 (22.4% decrease). The full
+model achieves the best performance across all task types, with
+particularly strong results on temporal tasks (F1=46.52) and open-
+domain tasks (F1=44.35), demonstrating the synergistic effect of
+combining all components.
+4. CONCLUSION
+We presented FadeMem, a biologically-inspired agent memory ar-
+chitecture that introduces adaptive forgetting to LLM-based systems.
+By implementing differential decay rates modulated by semantic
+relevance, access frequency, and temporal patterns, combined with
+LLM-guided conflict resolution and intelligent memory fusion, our
+approach achieves superior retention of critical information while re-
+ducing storage by 45%. The dual-layer memory hierarchy naturally
+consolidates related information while allowing irrelevant details to
+fade, achieving a dynamic balance between memory capacity and
+retrieval precision. Experiments on Multi-Session Chat, LoCoMo,
+and LTI-Bench demonstrate consistent improvements in multi-hop
+reasoning and retrieval performance compared to existing baselines,
+validating the effectiveness of incorporating human-like forgetting
+patterns inspired by Ebbinghaus’s forgetting curve. This work es-
+tablishes that selective forgetting, rather than being a limitation, is
+essential for preventing information overload and maintaining rel-
+evance in agent memory systems. Future work will explore meta-
+learning approaches to further enhance adaptive decay parameters
+and extend the framework to multi-agent collaborative memory sys-
+tems.
+
+===== PAGE 5 =====
+5. REFERENCES
+[1] Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick SH
+Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau
+Yih, “Dense passage retrieval for open-domain question an-
+swering.,” inEMNLP (1), 2020, pp. 6769–6781.
+[2] Nelson F Liu, Kevin Lin, John Hewitt, Ashwin Paranjape,
+Michele Bevilacqua, Fabio Petroni, and Percy Liang, “Lost in
+the middle: How language models use long contexts,”Trans-
+actions of the association for computational linguistics, vol.
+12, pp. 157–173, 2024.
+[3] Zhaolu Kang, Junhao Gong, Qingxi Chen, Hao Zhang, Jiaxin
+Liu, Rong Fu, Zhiyuan Feng, Yuan Wang, Simon Fong, and
+Kaiyue Zhou, “Multimodal multi-agent empowered legal judg-
+ment prediction,” 2026.
+[4] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni,
+Vladimir Karpukhin, Naman Goyal, Heinrich K ¨uttler, Mike
+Lewis, Wen-tau Yih, Tim Rockt ¨aschel, et al., “Retrieval-
+augmented generation for knowledge-intensive nlp tasks,”Ad-
+vances in neural information processing systems, vol. 33, pp.
+9459–9474, 2020.
+[5] Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu
+Pan, Yuxi Bi, Yi Dai, Jiawei Sun, Meng Wang, and Haofen
+Wang, “Retrieval-augmented generation for large language
+models: A survey,” 2024.
+[6] Nur Arifin Akbar, Rahool Dembani, Biagio Lenzitti, and
+Domenico Tegolo, “Rag-driven memory architectures in con-
+versational llms-a literature review with insights into emerging
+agriculture data sharing,”IEEE Access, 2025.
+[7] Haitong Li, Wei-Chen Chen, Akash Levy, Ching-Hua Wang,
+Hongjie Wang, Po-Han Chen, Weier Wan, H-S Philip Wong,
+and Priyanka Raina, “One-shot learning with memory-
+augmented neural networks using a 64-kbit, 118 gops/w rram-
+based non-volatile associative memory,” in2021 Symposium
+on VLSI Technology. IEEE, 2021, pp. 1–2.
+[8] Yiming Lei, Jiawei Xu, Chia Xin Liang, Ziqian Bi, Xiaoming
+Li, Danyang Zhang, Junhao Song, and Zhenyu Yu, “Large lan-
+guage model agents: A comprehensive survey on architectures,
+capabilities, and applications,” 2025.
+[9] Luis Martin, Karina Jaime, F ´elix Ramos, and Francisco Rob-
+les, “Bio-inspired cognitive architecture of episodic memory,”
+Cognitive Systems Research, vol. 76, pp. 26–45, 2022.
+[10] Zihang Dai, Zhilin Yang, Yiming Yang, Jaime G Carbonell,
+Quoc Le, and Ruslan Salakhutdinov, “Transformer-xl: At-
+tentive language models beyond a fixed-length context,” in
+Proceedings of the 57th annual meeting of the association for
+computational linguistics, 2019, pp. 2978–2988.
+[11] Prateek Chhikara, Dev Khant, Saket Aryan, Taranjeet Singh,
+and Deshraj Yadav, “Mem0: Building production-ready ai
+agents with scalable long-term memory,”arXiv preprint
+arXiv:2504.19413, 2025.
+[12] James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel Ve-
+ness, Guillaume Desjardins, Andrei A Rusu, Kieran Milan,
+John Quan, Tiago Ramalho, Agnieszka Grabska-Barwinska,
+et al., “Overcoming catastrophic forgetting in neural net-
+works,”Proceedings of the national academy of sciences, vol.
+114, no. 13, pp. 3521–3526, 2017.[13] Everton L Aleixo, Juan G Colonna, Marco Cristo, and Ever-
+landio Fernandes, “Catastrophic forgetting in deep learning: A
+comprehensive taxonomy,”arXiv preprint arXiv:2312.10549,
+2023.
+[14] Doris V oina, Eric Shea-Brown, and Stefan Mihalas, “A bio-
+logically inspired architecture with switching units can learn
+to generalize across backgrounds,”Neural Networks, vol. 168,
+pp. 615–630, 2023.
+[15] Zeyu Zhang, Quanyu Dai, Xiaohe Bo, Chen Ma, Rui Li,
+Xu Chen, Jieming Zhu, Zhenhua Dong, and Ji-Rong Wen, “A
+survey on the memory mechanism of large language model-
+based agents,”ACM Transactions on Information Systems, vol.
+43, no. 6, pp. 1–47, 2025.
+[16] Timothy Tadros, Giri Krishnan, Ramyaa Ramyaa, and Maxim
+Bazhenov, “Biologically inspired sleep algorithm for reducing
+catastrophic forgetting in neural networks,” inProceedings of
+the AAAI Conference on Artificial Intelligence, 2020, vol. 34,
+pp. 13933–13934.
+[17] Thorsten Rudroff, Oona Rainio, and Riku Klen, “Neuroplas-
+ticity meets artificial intelligence: A hippocampus-inspired ap-
+proach to the stability–plasticity dilemma,”Brain Sciences,
+vol. 14, no. 11, pp. 1111, 2024.
+[18] Hermann Ebbinghaus, HA Ruger, and CE Bussenius, “Mem-
+ory: A contribution to experimental psychology: Teachers col-
+lege,”Columbia university, 1913.
+[19] John T Wixted, “The psychology and neuroscience of forget-
+ting,”Annu. Rev. Psychol., vol. 55, no. 1, pp. 235–269, 2004.
+[20] Jian Liu, Xiongtao Shi, Thai Duy Nguyen, Haitian Zhang,
+Tianxiang Zhang, Wei Sun, Yanjie Li, Athanasios V Vasilakos,
+Giovanni Iacca, Arshad Ali Khan, et al., “Neural brain: A
+neuroscience-inspired framework for embodied agents,”arXiv
+preprint arXiv:2505.07634, 2025.
+[21] Qinghua Zheng, Huan Liu, Xiaoqing Zhang, Caixia Yan, Xi-
+angyong Cao, Tieliang Gong, Yong-Jin Liu, Bin Shi, Zhen
+Peng, Xiaocen Fan, et al., “Machine memory intelligence: In-
+spired by human memory mechanisms,”Engineering, 2025.
+[22] Jiazheng Kang, Mingming Ji, Zhe Zhao, and Ting Bai, “Mem-
+ory os of ai agent,”arXiv preprint arXiv:2506.06326, 2025.
+[23] Jing Xu, Arthur Szlam, and Jason Weston, “Beyond goldfish
+memory: Long-term open-domain conversation,” inProceed-
+ings of the 60th annual meeting of the association for compu-
+tational linguistics (volume 1: long papers), 2022, pp. 5180–
+5197.
+[24] Adyasha Maharana, Dong-Ho Lee, Sergey Tulyakov, Mohit
+Bansal, Francesco Barbieri, and Yuwei Fang, “Evaluating
+very long-term conversational memory of llm agents,”arXiv
+preprint arXiv:2402.17753, 2024.
+[25] Charles Packer, Vivian Fang, Shishir G Patil, Kevin Lin, Sarah
+Wooders, and Joseph E Gonzalez, “Memgpt: Towards llms as
+operating systems.,” 2023.
+[26] Potsawee Manakul, Adian Liusie, and Mark Gales, “Self-
+checkgpt: Zero-resource black-box hallucination detection for
+generative large language models,” inProceedings of the 2023
+conference on empirical methods in natural language process-
+ing, 2023, pp. 9004–9017.
+[27] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad,
+Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko
+Altenschmidt, Sam Altman, Shyamal Anadkat, et al., “Gpt-4
+technical report,”arXiv preprint arXiv:2303.08774, 2023.
