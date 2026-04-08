@@ -52,7 +52,12 @@ aimemory/
 │   ├── 02_MEMORY_CONSOLIDATION.md # 方向 B：记忆巩固
 │   ├── 03_CAUSAL_RETRIEVAL.md   # 方向 C：因果驱动检索
 │   ├── 04_EVENT_SEGMENTATION_PLUS_STRUCTURE.md # 方向 D：动态事件分割 + 结构化表示
-│   └── 05_MULTIMODAL_EMBODIED_MEMORY.md # 方向 E：多模态 / 具身记忆
+│   ├── 05_MULTIMODAL_EMBODIED_MEMORY.md # 方向 E：多模态 / 具身记忆
+│   └── consolidation/           # 方向 B 深入研究材料
+│       ├── GAP_ANALYSIS.md      # 差距分析：当前缺什么
+│       ├── RESEARCH_PLAN.md     # 研究计划：具体怎么做
+│       ├── BASELINE_AND_BENCHMARKS.md # Baseline 与评测方案
+│       └── PAPER_READING_LIST.md # 补读论文清单
 └── references/
     └── RESOURCES.md             # 开源代码、数据集、工具汇总
 ```
