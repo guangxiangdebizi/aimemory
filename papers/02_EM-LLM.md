@@ -1,107 +1,190 @@
 # EM-LLM: Human-inspired Episodic Memory for Infinite Context LLMs
 
+> 核对状态：已按论文 PDF 复核（2026-04-07）。
+
 ## 基本信息
 
 | 项目 | 内容 |
 |------|------|
-| **Venue** | ICLR 2025 (Poster) |
-| **作者** | Huawei Noah's Ark Lab + University College London |
-| **官网** | https://em-llm.github.io/ |
-| **论文** | https://proceedings.iclr.cc/paper_files/paper/2025/hash/c05144b635df16ac9bbf8246bbbd55ca-Abstract-Conference.html |
+| **Venue** | ICLR 2025 |
+| **作者** | Zafeirios Fountas, Martin A. Benfeghoul, Adnan Oomerjee, Fenia Christopoulou, Gerasimos Lampouras, Haitham Bou-Ammar, Jun Wang |
+| **机构** | Huawei Noah's Ark Lab, London; University College London |
+| **论文页面** | https://proceedings.iclr.cc/paper_files/paper/2025/hash/c05144b635df16ac9bbf8246bbbd55ca-Abstract-Conference.html |
+| **PDF** | https://proceedings.iclr.cc/paper_files/paper/2025/file/c05144b635df16ac9bbf8246bbbd55ca-Paper-Conference.pdf |
+| **本地 PDF** | [02_EM-LLM.pdf](../_tmp_pdfs/02_EM-LLM.pdf) |
+| **本地抽取文本** | [02_EM-LLM.txt](../_tmp_txt/02_EM-LLM.txt) |
+| **代码** | https://github.com/em-llm/EM-LLM-model |
 
 ## 为什么这篇重要
 
-**这是第一篇在顶会上正式将人类情景记忆和事件认知原理集成到 LLM 中的工作。**
+**这是把“人类情景记忆 + 事件认知”真正落到长上下文 LLM 推理机制上的代表作。**
 
-不需要微调，直接在推理时工作，能处理千万级 token 的上下文。
-而且实验发现：模型的事件分割和人类感知的事件边界高度相关。
+它的价值不只是“能做更长上下文”，而是把以下几个认知科学概念工程化了：
 
-## 核心架构（原文技术细节）
+- 连续经验会被切成离散事件
+- 事件边界通常出现在高 surprise 的位置
+- 回忆不只是语义相似，还会带出时间相邻事件
 
-三个核心创新，全部在推理时工作，**不需要微调**：
+而且这套方法**不需要微调**，直接在推理阶段工作。
 
-### 1. 事件分割（Event Segmentation）
+## 核心架构（按原文）
 
-用 **贝叶斯惊奇度（Bayesian Surprise）** 检测 token 序列中的事件边界。
+EM-LLM 的三块核心机制分别是：
+
+1. **surprise-based event segmentation**
+2. **graph-theoretic boundary refinement**
+3. **two-stage episodic retrieval**
+
+### 1. 事件分割：不是泛泛的“不确定性变化”，而是显式 Bayesian surprise
+
+论文把 token 级 surprise 定义为：
+
+```text
+-log P(x_t | x_1, ..., x_(t-1); θ)
+```
+
+也就是：当前真实 token 在已有上下文下的负对数似然。
+token 越“出乎模型意料”，surprise 越高。
+
+边界判定阈值不是固定常数，而是一个**滑动窗口自适应阈值**：
+
+```text
+T = μ_(t-τ:t) + γσ_(t-τ:t)
+```
+
+也就是说：
+
+- 用过去一段窗口里的 surprise 均值和标准差估阈值
+- `γ` 控制切分敏感度
+- 某个 token 的 surprise 超过阈值，就把它当作潜在事件边界
+
+这点很关键，因为它说明 EM-LLM 不是简单把“高困惑度”拿来硬切，而是做了**局部自适应**。
+
+### 2. 边界精化：不是泛泛“社区检测”，而是对 key 相似图优化目标
+
+初始边界出来以后，论文会再做一次 refinement。
 
 具体做法：
-- 在 LLM 处理 token 序列时，监测每个位置的 **预测不确定性变化**
-- 当不确定性突然升高（"惊奇"），说明信息流发生了转折 → 标记为事件边界
-- 这模仿了人类大脑的事件分割机制——人也是在"意外"发生时切分记忆片段
 
-变体标记：
-- **S** = 纯惊奇度分割
-- **SM** = 惊奇度 + 图论精化
-- **SC** = 惊奇度 + 上下文增强
-- **SM+C** = 全部组合
+- 取 attention head 的 key vectors
+- 用 token 间 key similarity 构成加权邻接矩阵 `A`
+- 再对候选边界做优化，让事件内部更紧、事件之间更分离
 
-### 2. 边界精化（Boundary Refinement）
+论文主要讨论两类 refinement objective：
 
-用**图论方法**精化事件边界：
-- 将 token 序列建模为图
-- 用社区检测算法找到语义连贯的子图
-- 确保每个"记忆片段"在语义上是完整的
+- **modularity**
+- **conductance**
 
-关键点：这是**实时的**，信息流入时就在做，不是事后处理。
+复杂度写得很明确：整体 refinement 为 **O(nm)**，
+其中 `n` 是序列长度，`m` 是处理 chunk size。
 
-### 3. 两阶段记忆检索（Two-Stage Retrieval）
+所以更准确的理解是：
 
-**阶段一：相似度检索**
-- 对每个事件计算嵌入向量
-- query 进来时，找语义最相关的事件
+> 它不是离线聚类整段文本，而是围绕 surprise 初始边界，对 KV 结构做局部图论精化。
 
-**阶段二：时间邻近检索**
-- 找到相似事件后，额外召回其**时间上相邻的事件**
-- 模仿人类"想到一件事，顺带想起前后发生的事"
+### 3. 两阶段检索：Similarity Buffer + Contiguity Buffer
 
-两阶段对应人类记忆的两种访问模式：
-- 联想式回忆（semantic similarity）
-- 时序式回忆（temporal contiguity）
+检索阶段也不是单纯 top-k 相似度召回。
+
+第一阶段：
+
+- 对每个事件选 representative tokens
+- 当前 query 与这些代表向量做 `k-NN`
+- 得到语义上最相关的 `k_s` 个事件
+
+第二阶段：
+
+- 再把这些事件在原始时间线上相邻的事件放进一个 **contiguity buffer**
+- 这个 buffer 是 queue 结构，模拟 temporal contiguity / asymmetry
+
+最终写法上，进入上下文的是：
+
+```text
+k = k_s + k_c
+```
+
+其中：
+
+- `k_s` = similarity buffer
+- `k_c` = contiguity buffer
+
+论文还强调：**每一层都可以单独检索和 attend 不同事件**，不是整模型只检一次。
 
 ## 实验结果（关键数字）
 
-### LongBench 对比（F1 Score）
+### 1. 对 InfLLM 的主结果
 
-| Base LLM | 方法 | SQA | MQA | Sum | FSL | Ret | Cod | Avg |
-|-----------|------|-----|-----|-----|-----|-----|-----|-----|
-| LLaMA 3.1 | InfLLM | 41.4 | 40.7 | 29.0 | 69.0 | 97.0 | 64.2 | 51.1 |
-| LLaMA 3.1 | **EM-LLM** | 41.2 | 41.3 | 29.2 | 69.1 | **98.5** | 64.1 | **51.3** |
+论文 Table 1 中，LLaMA 3.1-8B 这一组最关键：
 
-### ∞-Bench 对比
+| Base LLM | 方法 | LongBench Avg. | Retrieve.KV | Retrieve.PassKey | Retrieve.Number |
+|----------|------|----------------|-------------|------------------|-----------------|
+| LLaMA 3.1 | InfLLM (4k+4k) | 51.1 | 81.0 | 100.0 | 100.0 |
+| LLaMA 3.1 | **EM-LLM SM** | **51.3** | **90.2** | **100.0** | **100.0** |
 
-| Base LLM | 方法 | R.KV | R.P | R.N |
-|-----------|------|------|-----|-----|
-| LLaMA 3.1 | InfLLM | 81.0 | 100.0 | 100.0 |
-| LLaMA 3.1 | **EM-LLM** | **90.2** | 100.0 | 100.0 |
+这个表面看平均分增幅不大，但 retrieval 相关任务提升非常明显。
 
-### 核心亮点
-- 成功在 **1000 万 tokens** 上做检索（传统方法计算上不可行）
-- 检索和 QA 任务上比 InfLLM 提升高达 **40%**
-- 事件分割结果和人类感知的事件边界**强相关**（通过播客实验验证）
+论文正文给出的总结更完整：
 
-### 人类对齐实验
-用播客听众标注的事件边界做对比：
-- EM-LLM 的惊奇度分割（S, SM, SC）**持续优于固定间隔分割**（F, FM, FC）
-- 证明模型的事件检测机制捕捉到了人类感知事件的本质特征
+- 在 **5 个 base LLM** 上都比 InfLLM 更强
+- 在 LongBench 各任务组里，覆盖 **80%** 的提升
+- 对 InfLLM 的最大提升约为：
+  - **retrieval 任务 up to 40%**
+  - **QA 任务 up to 29.7%**
+
+### 2. 对 RAG 和 Full-context 的比较
+
+论文 Appendix A.2 / Table 9 给出更直观的数据。
+在 LLaMA-3.1-8B 上：
+
+| 方法 | LongBench Avg. | ∞-Bench Avg. |
+|------|----------------|--------------|
+| RAG | 36.44 | 58.97 |
+| Full-context | 39.30 | 66.33 |
+| **EM-LLM S** | **51.58** | **66.66** |
+
+正文明确写到：
+
+- LongBench 上相对 NV-Embed-v2 RAG 提升 **30.5%**
+- ∞-Bench 上相对 RAG 提升 **11.5%**
+
+### 3. 超长上下文能力
+
+论文给出的强结果是：
+
+- 在 **Passkey Retrieval** 上做到 **10.2M tokens** 仍可 100% 准确
+- 作者把这作为 full-context 模型在计算上几乎不可行的对照
+
+### 4. 人类对齐分析
+
+这里也要说得准确一点。
+
+论文不是“播客实验”这么简单，而是在人类标注的**音频事件边界数据**上比较不同切分方法：
+
+- 基于 surprise 的方法（`S / SM / SC`）持续优于固定切分方法（`F / FM / FC`）
+- 这说明 LLM 的 surprise signal 与人类感知到的事件边界存在明显对应关系
 
 ## 与本项目的关系
 
 **直接相关度：⭐⭐⭐⭐⭐**
 
-这篇直接证明了：
-1. 认知科学的记忆原理可以落地到 LLM 架构
-2. 动态事件分割比固定 chunk 更好
-3. 多阶段检索比纯向量 topk 更好
-4. 模型的行为可以和人类认知对齐
+这篇对我们尤其关键，因为它把三件我们一直想做的事同时证明了：
 
-这正是我们想做的"类人记忆"的最佳参考实现。
+1. **动态事件切分优于固定 chunk**
+2. **检索应该同时利用语义关联和时间邻近**
+3. **认知科学启发不只是叙事包装，真的能改善 LLM 长上下文行为**
+
+## 关键局限
+
+- **没有遗忘机制**：事件会持续累积，长期运行仍面临存储膨胀
+- **超参数较多**：`γ`、buffer 大小、contiguity ratio 都会影响结果
+- **boundary refinement 有额外开销**：虽然比 full attention 轻很多，但比纯 surprise 切分更复杂
+- **仍是 retrieval-based memory**：不是模型内部写入式记忆
 
 ## 待深入的问题
 
-- [x] 贝叶斯惊奇度的具体计算方式？→ 基于 LLM 自身的预测不确定性变化，不需要额外模型
-- [ ] 惊奇度阈值怎么定？是自适应的还是固定的？
-- [ ] 事件分割粒度如何控制？太细会导致碎片化，太粗会丢失细节
-- [ ] 能否和 MEMORYLLM 的内生记忆结合？（事件分割决定写入单元 + 参数级写入）
-- [ ] 遗忘机制缺失——所有事件都保留，长期运行会导致存储膨胀
-- [ ] 和 FadeMem 的衰减机制结合：事件级遗忘而非 token 级遗忘
-- [ ] 图论边界精化的计算开销？实时性能如何？
+- [x] surprise 到底怎么算？→ **是 token 级负对数似然，不是笼统“不确定性变化”**
+- [x] 边界阈值是固定的吗？→ **不是，使用滑动窗口 `μ + γσ` 自适应阈值**
+- [x] refinement 是做什么？→ **对 attention-key similarity 图优化 modularity / conductance**
+- [ ] 如何引入遗忘或 consolidation，而不是事件一直堆积
+- [ ] 能否把 EM-LLM 的事件单元作为 MEMORYLLM 的写入颗粒
+- [ ] 两阶段检索能否和图记忆结构结合，避免只靠局部时序邻接
