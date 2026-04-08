@@ -16,8 +16,8 @@
       "parent_versions": [],
       "revision_history": [],
       "confidence": 1.0,
-      "created_at": "2026-04-08T03:49:23.150622",
-      "updated_at": "2026-04-08T03:49:23.150572"
+      "created_at": "2026-04-08T04:30:19.764088",
+      "updated_at": "2026-04-08T04:30:19.764055"
     },
     {
       "memory_id": "m_0001",
@@ -40,11 +40,11 @@
         "m_0001_v1"
       ],
       "revision_history": [
-        "New evidence introduces a likely contradiction."
+        "新证据明确表示用户现在已经不喜欢蓝色界面了，并给出了原因（会想到旧系统），这直接否定了旧记忆中'用户很喜欢蓝色界面，觉得蓝色很专业'的偏好，构成对旧记忆的反转。"
       ],
       "confidence": 1.0,
-      "created_at": "2026-04-08T03:49:23.150622",
-      "updated_at": "2026-04-08T03:49:23.150581"
+      "created_at": "2026-04-08T04:30:19.764088",
+      "updated_at": "2026-04-08T04:30:19.764065"
     },
     {
       "memory_id": "m_0001",
@@ -69,12 +69,12 @@
         "m_0001_v2"
       ],
       "revision_history": [
-        "New evidence introduces a likely contradiction.",
-        "New evidence appears to refine or condition the existing memory."
+        "新证据明确表示用户现在已经不喜欢蓝色界面了，并给出了原因（会想到旧系统），这直接否定了旧记忆中'用户很喜欢蓝色界面，觉得蓝色很专业'的偏好，构成对旧记忆的反转。",
+        "新证据对现有记忆进行了细化：用户并非完全不喜欢蓝色，而是只接受深蓝色作为强调色，不喜欢大面积蓝色。这为'不喜欢蓝色界面'这一笼统记忆增加了条件和例外，使偏好描述更加精确。"
       ],
       "confidence": 1.0,
-      "created_at": "2026-04-08T03:49:23.150622",
-      "updated_at": "2026-04-08T03:49:23.150581"
+      "created_at": "2026-04-08T04:30:19.764088",
+      "updated_at": "2026-04-08T04:30:19.764065"
     }
   ]
 }

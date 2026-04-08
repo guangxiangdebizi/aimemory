@@ -4,30 +4,217 @@ import json
 from pathlib import Path
 
 
+def delayed_contradiction_cases() -> list[dict]:
+    specs = [
+        (
+            "001",
+            [["用户说最近很喜欢蓝色界面。", "用户说蓝色显得专业。"], ["用户说现在已经不喜欢蓝色界面了。", "用户说蓝色会让他想到旧系统。"]],
+            "用户现在不喜欢蓝色界面",
+        ),
+        (
+            "002",
+            [["用户说自己偏好邮件沟通。", "用户说电话会打断思路。"], ["用户说紧急情况下更希望直接电话联系。", "用户说关键问题不要只发邮件。"]],
+            "用户对沟通偏好具有紧急情况例外",
+        ),
+        (
+            "003",
+            [["用户说喜欢晚间开会。", "用户说晚上更有灵感。"], ["用户说现在晚上会议太消耗精力。", "用户说下午三点以后更合适。"]],
+            "用户现在不再偏好晚间开会",
+        ),
+        (
+            "004",
+            [["用户说喜欢默认自动保存。", "用户说手动保存容易忘。"], ["用户说自动保存打断了编辑流。", "用户说重要文档改成手动保存提醒更好。"]],
+            "用户对自动保存的偏好已经改变",
+        ),
+        (
+            "005",
+            [["用户说偏好周报用长文档。", "用户说细节越多越好。"], ["用户说高层同步时更想看一页摘要。", "用户说详细版只保留给内部复盘。"]],
+            "用户对周报格式的偏好具有场景条件",
+        ),
+    ]
+    return [
+        {
+            "case_id": f"delayed_contradiction_{suffix}",
+            "task": "delayed_contradiction",
+            "expected_behavior": "revise",
+            "sessions": sessions,
+            "expected_active_memory": expected,
+        }
+        for suffix, sessions, expected in specs
+    ]
+
+
+def refinement_cases() -> list[dict]:
+    specs = [
+        (
+            "001",
+            [["用户说喜欢咖啡。", "用户经常点拿铁。"], ["用户说只喜欢热咖啡。", "用户不喜欢冰咖啡。"]],
+            "用户对咖啡偏好具有条件限制",
+        ),
+        (
+            "002",
+            [["用户说喜欢极简风格。", "用户说界面越简单越好。"], ["用户说登录页可以大胆一点。", "用户说核心工作台还是要克制。"]],
+            "用户偏好极简风格，但不同页面存在局部例外",
+        ),
+        (
+            "003",
+            [["用户说喜欢远程办公。", "用户说在家效率更高。"], ["用户说需要协作讨论时更愿意到办公室。", "用户说头脑风暴最好线下。"]],
+            "用户对办公方式偏好存在协作条件",
+        ),
+        (
+            "004",
+            [["用户说喜欢详细代码解释。", "用户说希望把思路讲透。"], ["用户说简单 bug 修复时只要结论。", "用户说复杂设计再展开细讲。"]],
+            "用户对解释详细度的偏好取决于任务复杂度",
+        ),
+        (
+            "005",
+            [["用户说喜欢黑咖啡。", "用户说不想加糖。"], ["用户说早餐时能接受少量奶。", "用户说下午仍然更喜欢纯黑咖啡。"]],
+            "用户的咖啡偏好具有时间段条件",
+        ),
+    ]
+    return [
+        {
+            "case_id": f"refinement_{suffix}",
+            "task": "refinement",
+            "expected_behavior": "revise_or_split",
+            "sessions": sessions,
+            "expected_active_memory": expected,
+        }
+        for suffix, sessions, expected in specs
+    ]
+
+
+def provenance_cases() -> list[dict]:
+    specs = [
+        (
+            "001",
+            [["用户说不喜欢蓝色界面。", "用户说蓝色会让他想到旧系统。"], ["用户说深蓝色做强调色还能接受。"]],
+            "用户对蓝色界面的偏好是条件化的",
+            3,
+        ),
+        (
+            "002",
+            [["用户说喜欢晨间写作。", "用户说早上头脑最清晰。"], ["用户说下午也能写，但只适合修改。"]],
+            "用户对写作时间的偏好是分阶段的",
+            3,
+        ),
+        (
+            "003",
+            [["用户说不喜欢群聊通知。", "用户说通知会打断专注。"], ["用户说值班周必须保留告警通知。"]],
+            "用户对通知偏好的结论来自多条上下文证据",
+            3,
+        ),
+        (
+            "004",
+            [["用户说喜欢短回复。", "用户说不喜欢长段废话。"], ["用户说做方案评审时可以写长一点。"]],
+            "用户对回复长度偏好具有任务条件",
+            3,
+        ),
+    ]
+    return [
+        {
+            "case_id": f"provenance_{suffix}",
+            "task": "provenance_tracing",
+            "expected_behavior": "traceable",
+            "sessions": sessions,
+            "expected_active_memory": expected,
+            "expected_provenance_count": provenance_count,
+        }
+        for suffix, sessions, expected, provenance_count in specs
+    ]
+
+
+def schema_revision_cases() -> list[dict]:
+    specs = [
+        (
+            "001",
+            [["用户多次点清淡食物。", "用户说不喜欢重口味。", "用户常点沙拉和日料。"], ["用户说冬天会更想吃火锅。", "用户最近经常吃烧烤。"]],
+            "用户饮食偏好存在季节条件",
+        ),
+        (
+            "002",
+            [["用户连续几次都选择同步会议。", "用户说面对面推进更快。"], ["用户说文档评审更适合异步。", "用户说只有关键决策才需要同步。"]],
+            "用户对协作方式形成了情境化规则",
+        ),
+        (
+            "003",
+            [["用户多次要求保守 UI。", "用户说上线页面要稳。"], ["用户说 marketing 页面可以更激进。", "用户说运营活动页允许实验。"]],
+            "用户在不同页面类型上形成了分层设计偏好",
+        ),
+        (
+            "004",
+            [["用户多次要求简短日报。", "用户说不想花时间写总结。"], ["用户说周五复盘要详细一点。", "用户说月度总结必须包含趋势。"]],
+            "用户对汇报粒度存在周期性条件",
+        ),
+        (
+            "005",
+            [["用户多次偏好单文件脚本。", "用户说小任务不要过度工程化。"], ["用户说长期维护模块必须拆包。", "用户说脚手架项目需要标准结构。"]],
+            "用户对代码组织方式存在规模条件",
+        ),
+    ]
+    return [
+        {
+            "case_id": f"schema_revision_{suffix}",
+            "task": "schema_revision",
+            "expected_behavior": "revise",
+            "sessions": sessions,
+            "expected_active_memory": expected,
+        }
+        for suffix, sessions, expected in specs
+    ]
+
+
+def stale_suppression_cases() -> list[dict]:
+    specs = [
+        (
+            "001",
+            [["用户说喜欢默认深色模式。", "用户说晚上工作多。"], ["用户说现在白天办公居多。", "用户说默认浅色更合适，夜间再切换。"]],
+            "用户当前默认更偏向浅色模式",
+        ),
+        (
+            "002",
+            [["用户说所有通知都想静音。", "用户说提醒太吵。"], ["用户说关键客户消息不能静音。", "用户说只想屏蔽普通群聊。"]],
+            "用户不再希望全量静音所有通知",
+        ),
+        (
+            "003",
+            [["用户说喜欢一次性大改。", "用户说重构要一步到位。"], ["用户说线上系统风险太高。", "用户说核心模块应该分阶段迁移。"]],
+            "用户当前对重构策略更偏好渐进式迁移",
+        ),
+        (
+            "004",
+            [["用户说喜欢所有回复都很短。", "用户说别解释太多。"], ["用户说新人 onboarding 需要更详细说明。", "用户说复杂问题要给步骤。"]],
+            "用户不再对所有回复一律要求很短",
+        ),
+        (
+            "005",
+            [["用户说喜欢全自动部署。", "用户说人工确认太慢。"], ["用户说生产环境必须加人工审批。", "用户说测试环境可以全自动。"]],
+            "用户当前对部署自动化的偏好具有环境条件",
+        ),
+    ]
+    return [
+        {
+            "case_id": f"stale_suppression_{suffix}",
+            "task": "stale_suppression",
+            "expected_behavior": "revise_and_single_active",
+            "sessions": sessions,
+            "expected_active_memory": expected,
+        }
+        for suffix, sessions, expected in specs
+    ]
+
+
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
     out = root / "data" / "eval" / "mini_reconsolidation_cases.jsonl"
     out.parent.mkdir(parents=True, exist_ok=True)
 
     records = [
-        {
-            "case_id": "delayed_contradiction_001",
-            "task": "delayed_contradiction",
-            "sessions": [
-                ["用户说最近很喜欢蓝色界面。", "用户说蓝色显得专业。"],
-                ["用户说现在已经不喜欢蓝色界面了。", "用户说蓝色会让他想到旧系统。"],
-            ],
-            "expected_active_memory": "用户现在不喜欢蓝色界面",
-        },
-        {
-            "case_id": "refinement_001",
-            "task": "refinement",
-            "sessions": [
-                ["用户说喜欢咖啡。", "用户经常点拿铁。"],
-                ["用户说只喜欢热咖啡。", "用户不喜欢冰咖啡。"],
-            ],
-            "expected_active_memory": "用户对咖啡偏好具有条件限制",
-        },
+        *delayed_contradiction_cases(),
+        *refinement_cases(),
+        *provenance_cases(),
+        *schema_revision_cases(),
+        *stale_suppression_cases(),
     ]
 
     with out.open("w", encoding="utf-8") as handle:
@@ -39,4 +226,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -13,7 +13,7 @@ Scope of v0:
 
 This prototype is intentionally simple:
 - rule-based storage and retrieval
-- prompt-style relation judge stub
+- pluggable relation judge (`heuristic`, `prompt_stub`, `llm`)
 - no RL
 - no heavy training
 
@@ -21,5 +21,30 @@ Recommended first run:
 
 ```bash
 python prototype/scripts/run_reconsolidation.py
+python prototype/scripts/run_baselines.py
+python prototype/scripts/build_dataset.py
+python prototype/scripts/run_eval_suite.py
 ```
 
+To use the LLM judge:
+
+```bash
+python prototype/scripts/run_reconsolidation.py
+```
+
+Environment variables:
+- `OPENAI_API_KEY`
+- optional `OPENAI_MODEL` or `OPENAI_JUDGE_MODEL`
+- optional `OPENAI_BASE_URL`
+
+Environment management:
+- local secrets live in repository-root `.env`
+- tracked template lives in `.env.example`
+- `.env` is ignored by git
+- `.env` values take precedence over inherited shell variables
+
+What exists now:
+- `reconsolidation/judges.py`: replaceable judge interface
+- `reconsolidation/pipeline.py`: shared reconsolidation loop
+- `reconsolidation/baselines.py`: minimal baseline runners
+- `scripts/run_eval_suite.py`: minimal case-based evaluation

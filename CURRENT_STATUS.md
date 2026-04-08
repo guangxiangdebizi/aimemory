@@ -86,14 +86,20 @@
 - episode-level evidence 构建
 - versioned memory store
 - candidate retriever
-- relation judge（当前为轻量 heuristic 版本）
+- 可插拔 relation judge 接口（`heuristic / prompt_stub / llm`）
 - operation mapper
 - retrieval-time resolver
+- shared reconsolidation pipeline
+- 3 个基础 baseline runner
 - 最小 demo 脚本
+- 最小 case-based evaluation suite
+- `.env` 驱动的本地凭证管理
 
 对应代码：
 - [prototype/reconsolidation](prototype/reconsolidation)
 - [run_reconsolidation.py](prototype/scripts/run_reconsolidation.py)
+- [run_baselines.py](prototype/scripts/run_baselines.py)
+- [run_eval_suite.py](prototype/scripts/run_eval_suite.py)
 - [evaluate.py](prototype/scripts/evaluate.py)
 
 ---
@@ -114,51 +120,63 @@
 这说明第一版系统已经不是只会 `ADD`，
 而是能表现出最基本的“长期记忆可修订”行为。
 
+另外，当前已经能在一个小型 case 集上批量跑：
+- `ours`
+- `no_consolidation`
+- `rule_based`
+- `recursive_summary`
+
+第一轮最小结果显示：
+- `ours` 在 `behavior_hit` 上明显高于基础 baseline
+- 在真实 LLM judge 下，当前最小集上达到 `6/6`
+- `provenance_hit` 也已经体现出差异
+- 但 `memory_hit` 仍然过粗，目前还只是原型级指标
+
 ---
 
 ## 现在还没完成什么
 
 虽然结构已经很完整，但仍然有几块关键部分还没做完。
 
-### 1. judge 还只是原型级
+### 1. judge 已能调用真实 LLM，但还需要系统化评估
 
-当前 `relation_judge.py` 主要是 heuristic。
+当前已经有：
+- heuristic judge
+- prompt stub
+- OpenAI-compatible `LLMRelationJudge`
 
-这适合：
-- 跑通论文假设
-- 验证数据结构是否合理
+并且已通过 `.env` 从本地读取凭证。
 
-但还不适合：
-- 做正式实验
-- 做大规模评测
+但还缺：
+- judge 稳定性分析
+- prompt 消融
+- 对不同模型的对比
 
-### 2. baseline 还没系统跑起来
+### 2. 小评测集还太小
 
-目前还没有完整实现：
-- No Consolidation
-- Rule-based Consolidation
-- Recursive Summarization baseline runner
-
-### 3. 小评测集还太小
-
-当前只有一个最小 `mini_reconsolidation_cases.jsonl`。
+当前虽然已经有一个最小 `mini_reconsolidation_cases.jsonl`，
+并扩到了 6 个 case，但数量仍远远不够。
 
 正式论文至少还需要：
 - delayed contradiction 集合
 - provenance tracing 集合
 - refinement / split 集合
+- stale suppression 集合
+- schema revision 更大样本
 
-### 4. 还没有真正进入论文实验阶段
+### 3. 还没有真正进入论文实验阶段
 
 现在还在：
 - 立题
 - 搭骨架
 - 做最小可运行原型
+- 跑小型 case-based 评测
+- 跑第一轮真实 LLM judge 结果
 
 还没有到：
 - 跑大 benchmark
 - 做消融
-- 出正式结果表
+- 出更完整的正式结果表
 
 ---
 
@@ -178,25 +196,33 @@
 
 当前最合理的推进顺序是：
 
-1. 把 `relation_judge` 改成可插拔接口
-   目标：支持 heuristic / prompt / model judge 三种形式
+1. 扩充小型评测集到 50-100 条
+   目标：让当前评测从 smoke test 升级成可分析结果
 
-2. 补一个小型评测集
-   目标：覆盖
-   - delayed contradiction
-   - provenance tracing
-   - over-abstraction refinement
+2. 改进评测指标
+   目标：把当前粗糙的 `memory_hit` 换成更合理的语义匹配或 judge-based 指标
 
-3. 实现 3 个基础 baseline
-   - No Consolidation
-   - Rule-based Consolidation
-   - Recursive Summarization
+3. 跑第一轮正式对比实验
+   目标：把当前最小 eval suite 升级成可写进论文的结果表
 
-4. 跑第一轮对比实验
-   目标不是全面最强，而是先验证：
-   - revision accuracy
-   - stale memory suppression
-   - traceability
+4. 接入公开 benchmark 子集验证
+   目标：证明在公开任务上不退化
+
+5. 做 judge / prompt / operation 的消融
+   目标：把方法从“能跑”推进到“能分析”
+
+### 已完成的关键里程碑
+
+- `LLMRelationJudge` 已实现并接通 Databricks OpenAI-compatible endpoint
+- `.env` 管理已接通，凭证不再硬编码
+- 第一轮真实 judge 的最小结果已经跑出
+
+### 当前最需要补强的部分
+
+- 评测集规模
+- 指标可信度
+- 结果表可读性
+- benchmark 外部验证
 
 ---
 
@@ -235,4 +261,3 @@
 而已经进入：
 
 **围绕 `provenance-preserving reconsolidation` 立题、搭原型、准备实验的阶段。**
-

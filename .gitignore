@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.pyc
+
+prototype/data/processed/*.json
+prototype/data/processed/*_memory_store.json
+

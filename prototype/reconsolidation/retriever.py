@@ -34,13 +34,17 @@ class CandidateRetriever:
 
     def retrieve(self, episode: Episode, memories: Sequence[MemoryVersion], top_k: int = 5) -> List[RetrievalCandidate]:
         scored: List[RetrievalCandidate] = []
-        episode_tokens = _char_ngrams(episode.content)
         for memory in memories:
-            text_tokens = _char_ngrams(memory.text)
-            lexical = _overlap_score(episode_tokens, text_tokens)
-            entity = _overlap_score(episode.entities, _extract_memory_entities(memory.text))
-            score = lexical * 0.7 + entity * 0.3
+            score = score_memory_match(episode, memory)
             if score > 0:
                 scored.append(RetrievalCandidate(memory=memory, score=score))
         scored.sort(key=lambda item: item.score, reverse=True)
         return scored[:top_k]
+
+
+def score_memory_match(episode: Episode, memory: MemoryVersion) -> float:
+    episode_tokens = _char_ngrams(episode.content)
+    text_tokens = _char_ngrams(memory.text)
+    lexical = _overlap_score(episode_tokens, text_tokens)
+    entity = _overlap_score(episode.entities, _extract_memory_entities(memory.text))
+    return lexical * 0.7 + entity * 0.3
