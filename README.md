@@ -9,20 +9,21 @@
 
 ## 研究方向
 
-### 方向一：认知启发的外部记忆系统
-基于认知科学（情景记忆、语义记忆、遗忘曲线、扩散激活）设计外部记忆架构，
-使记忆的**写入、保留、遗忘、回忆**行为尽可能接近人类。
+### 方向 A：RL 驱动的记忆策略
+研究如何让 agent 学会"什么时候记、什么时候删、什么时候更新、什么时候总结"，
+把记忆管理从手工规则升级成可学习策略。
 
-### 方向二：模型内生记忆能力
-探索让模型参数本身具备持续学习、在线写入能力的前沿方法，
-包括 self-updatable memory、latent memory pool、test-time training 等。
+### 方向 B：记忆巩固
+研究短期记忆如何在系统空闲时被整理、聚类、去重、冲突消解，并转化为更稳定的长期记忆。
 
-### 方向三：自适应记忆编排（Memory Controller）
-训练专门的记忆调度模型，实现 query-conditioned adaptive memory assembly：
-- 动态召回数量（非固定 top-k）
-- 动态切片边界（非固定 chunk）
-- 动态上下文完整度
-- 记忆融合与压缩
+### 方向 C：因果驱动检索
+研究如何从"检索语义上相似的记忆"升级为"检索对当前决策真正有因果意义的记忆"。
+
+### 方向 D：动态事件分割 + 结构化表示
+研究如何先把连续经历切成合理事件，再把每个事件存成结构化对象，提升记忆质量和检索质量。
+
+### 方向 E：多模态 / 具身记忆
+研究 agent 如何记住自己看过什么、做过什么、走过哪里，以及这些经历如何支持后续行动。
 
 ## 项目结构
 
@@ -45,6 +46,13 @@ aimemory/
 ├── architecture/
 │   ├── COGNITIVE_MEMORY_ARCH.md # 类人记忆架构设计
 │   └── COMPARISON.md            # 方案对比矩阵
+├── directions/
+│   ├── INDEX.md                 # 研究方向导读
+│   ├── 01_RL_MEMORY_POLICY.md   # 方向 A：RL 驱动的记忆策略
+│   ├── 02_MEMORY_CONSOLIDATION.md # 方向 B：记忆巩固
+│   ├── 03_CAUSAL_RETRIEVAL.md   # 方向 C：因果驱动检索
+│   ├── 04_EVENT_SEGMENTATION_PLUS_STRUCTURE.md # 方向 D：动态事件分割 + 结构化表示
+│   └── 05_MULTIMODAL_EMBODIED_MEMORY.md # 方向 E：多模态 / 具身记忆
 └── references/
     └── RESOURCES.md             # 开源代码、数据集、工具汇总
 ```
