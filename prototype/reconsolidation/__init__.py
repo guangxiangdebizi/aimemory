@@ -1,0 +1,2 @@
+"""Minimal reconsolidation prototype package."""
+

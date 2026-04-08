@@ -1,0 +1,80 @@
+{
+  "m_0001": [
+    {
+      "memory_id": "m_0001",
+      "version": 1,
+      "text": "用户说最近很喜欢蓝色界面，觉得蓝色很专业。",
+      "memory_type": "semantic_preference",
+      "status": "revised",
+      "provenance_set": [
+        "demo_e001"
+      ],
+      "support_set": [
+        "demo_e001"
+      ],
+      "contradiction_set": [],
+      "parent_versions": [],
+      "revision_history": [],
+      "confidence": 1.0,
+      "created_at": "2026-04-08T03:49:23.150622",
+      "updated_at": "2026-04-08T03:49:23.150572"
+    },
+    {
+      "memory_id": "m_0001",
+      "version": 2,
+      "text": "用户说现在已经不喜欢蓝色界面了，因为会想到旧系统。",
+      "memory_type": "semantic_preference",
+      "status": "revised",
+      "provenance_set": [
+        "demo_e001",
+        "demo_e002"
+      ],
+      "support_set": [
+        "demo_e001",
+        "demo_e002"
+      ],
+      "contradiction_set": [
+        "demo_e002"
+      ],
+      "parent_versions": [
+        "m_0001_v1"
+      ],
+      "revision_history": [
+        "New evidence introduces a likely contradiction."
+      ],
+      "confidence": 1.0,
+      "created_at": "2026-04-08T03:49:23.150622",
+      "updated_at": "2026-04-08T03:49:23.150581"
+    },
+    {
+      "memory_id": "m_0001",
+      "version": 3,
+      "text": "用户说其实只接受深蓝色作为强调色，不喜欢大面积蓝色。",
+      "memory_type": "semantic_preference",
+      "status": "active",
+      "provenance_set": [
+        "demo_e001",
+        "demo_e002",
+        "demo_e003"
+      ],
+      "support_set": [
+        "demo_e001",
+        "demo_e002",
+        "demo_e003"
+      ],
+      "contradiction_set": [
+        "demo_e002"
+      ],
+      "parent_versions": [
+        "m_0001_v2"
+      ],
+      "revision_history": [
+        "New evidence introduces a likely contradiction.",
+        "New evidence appears to refine or condition the existing memory."
+      ],
+      "confidence": 1.0,
+      "created_at": "2026-04-08T03:49:23.150622",
+      "updated_at": "2026-04-08T03:49:23.150581"
+    }
+  ]
+}

@@ -30,6 +30,7 @@
 ```
 aimemory/
 ├── README.md                    # 项目总览（本文件）
+├── CURRENT_STATUS.md            # 当前研究进度与下一步
 ├── papers/
 │   ├── INDEX.md                 # 文献总索引（按顶会/顶刊/预印本分类）
 │   ├── 01_MEMORYLLM.md          # MEMORYLLM — ICML 2024
@@ -59,7 +60,30 @@ aimemory/
 │       ├── BASELINE_AND_BENCHMARKS.md # Baseline 与评测方案
 │       ├── PAPER_READING_LIST.md # 补读论文清单
 │       ├── DIRECT_COMPETITOR_COMPARISON.md # 直接竞争工作逐篇拆解
-│       └── NON_OVERLAP_TOPIC_DRAFTS.md # 不撞车选题草案
+│       ├── NON_OVERLAP_TOPIC_DRAFTS.md # 不撞车选题草案
+│       ├── PROBLEM_STATEMENT.md # Reconsolidation 正式问题定义
+│       ├── METHOD_BLUEPRINT.md  # Reconsolidation 方法蓝图
+│       ├── EVALUATION_TASKS.md  # Reconsolidation 评测任务设计
+│       ├── OPENING_REPORT.md    # 开题汇报草案
+│       └── IMPLEMENTATION_PLAN.md # Prototype 实现计划
+├── prototype/
+│   ├── README.md                # Reconsolidation 原型说明
+│   ├── data/
+│   │   ├── raw/
+│   │   ├── processed/
+│   │   └── eval/
+│   ├── reconsolidation/
+│   │   ├── types.py             # 核心数据结构
+│   │   ├── episode_builder.py   # 事件级证据构建
+│   │   ├── memory_store.py      # 版本化长期记忆存储
+│   │   ├── retriever.py         # 候选旧记忆召回
+│   │   ├── relation_judge.py    # 新证据-旧记忆关系判定
+│   │   ├── operation_mapper.py  # 关系到操作的映射
+│   │   └── resolver.py          # 检索时有效版本解析
+│   └── scripts/
+│       ├── build_dataset.py     # 生成最小评测样例
+│       ├── run_reconsolidation.py # 跑最小 reconsolidation 闭环
+│       └── evaluate.py          # 输出简单统计指标
 └── references/
     └── RESOURCES.md             # 开源代码、数据集、工具汇总
 ```
