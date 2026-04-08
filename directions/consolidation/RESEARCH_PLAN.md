@@ -34,7 +34,7 @@
 **记忆不是整理一次就结束，而是随着新证据到来被重新整理，而且每次抽象都能追溯来源。**
 
 为什么好：
-- 和 TiMem / LightMem / SimpleMem 拉开差异
+- 和 TiMem / LightMem / PREMem / SimpleMem 拉开差异
 - 比单次 consolidation 更有认知科学味道
 - 可以和冲突更新、知识修订自然结合
 
@@ -183,11 +183,12 @@ LightMem 强在：
 ### 相对 SimpleMem
 
 SimpleMem 强在：
-- recursive consolidation
+- online semantic synthesis
+- structured compression
 
 你的差异：
-- 不只是往上递归抽象
-- 而是强调“抽象后的长期记忆如何继续演化”
+- 不只是写入时综合压缩
+- 而是强调“抽象后的长期记忆如何继续演化和修订”
 
 ### 相对 PREMem
 

@@ -57,7 +57,9 @@ aimemory/
 │       ├── GAP_ANALYSIS.md      # 差距分析：当前缺什么
 │       ├── RESEARCH_PLAN.md     # 研究计划：具体怎么做
 │       ├── BASELINE_AND_BENCHMARKS.md # Baseline 与评测方案
-│       └── PAPER_READING_LIST.md # 补读论文清单
+│       ├── PAPER_READING_LIST.md # 补读论文清单
+│       ├── DIRECT_COMPETITOR_COMPARISON.md # 直接竞争工作逐篇拆解
+│       └── NON_OVERLAP_TOPIC_DRAFTS.md # 不撞车选题草案
 └── references/
     └── RESOURCES.md             # 开源代码、数据集、工具汇总
 ```

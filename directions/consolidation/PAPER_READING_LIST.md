@@ -35,7 +35,7 @@
 |--------|------|------|--------------|----------------|---------------|
 | S1 | **TiMem** | **91** | arXiv 2026.01 | 这是目前最像“巩固系统论文”的工作之一。直接做 temporal-hierarchical consolidation | 它的层级组织、抽象路径、检索配套机制，哪些已经把你的想法占了 |
 | S2 | **LightMem** | **89** | ICLR 2026 Poster / arXiv 2025.10 | 明确提出 `sleep-time long-term consolidation`，而且效率结果很强 | 它怎样把在线和离线解耦；你不能再只讲“睡眠更新” |
-| S3 | **SimpleMem** | **88** | arXiv 2026.01 | 明确写出 `Recursive Memory Consolidation`，和“异步整理”高度重叠 | 它的三级 pipeline 已经做到哪一步；你还能在哪一层差异化 |
+| S3 | **SimpleMem** | **84** | arXiv 2026.01 | 最新版主打 `Online Semantic Synthesis`，已覆盖“写入时在线综合压缩” | 你不能再把“写入时把碎片合成高密度记忆”当新点 |
 | S4 | **PREMem** | **83** | Findings EMNLP 2025 | 把复杂推理前移到 memory construction，是写入侧的强竞争者 | 存前 reasoning 和存后 consolidation 的边界该怎么划 |
 | S5 | **Recursively Summarizing Enables Long-Term Dialogue Memory...** | **80** | Neurocomputing 2025 / arXiv 2023 | 最早的“递归摘要形成长期记忆”路线，不能忽略 | 它可以作为最朴素 baseline，也能帮你避免重复发明 |
 
@@ -148,7 +148,7 @@
 
 对你现在最重要的不是“多看几篇 memory 论文”，而是：
 
-**先把最像 consolidation 的那几篇看透，确认自己不会做成 TiMem / LightMem / SimpleMem 的变体。**
+**先把最像 consolidation 的那几篇看透，确认自己不会做成 TiMem / LightMem / PREMem / SimpleMem 的变体。**
 
 ---
 

@@ -32,14 +32,14 @@
 | 工作 | Venue / 时间 | 和你有多重 | 它已经做了什么 |
 |------|-------------|-----------|---------------|
 | **TiMem** | arXiv 2026.01 | 很重 | 直接提出 temporal-hierarchical memory consolidation，把对话组织成时间层级树，逐层抽象 |
-| **SimpleMem** | arXiv 2026.01 | 很重 | 明确写出 recursive memory consolidation，异步把 memory units 整合成更高层抽象表示 |
+| **SimpleMem** | arXiv 2026.01 | 中高 | 最新版本主打 semantic structured compression + online semantic synthesis，已覆盖“写入时综合压缩”这块 |
 | **LightMem** | ICLR 2026 Poster / arXiv 2025.10 | 很重 | 明确有 `sleep-time long-term consolidation`，把在线和离线更新分开 |
 | **PREMem** | Findings EMNLP 2025 | 中高 | 把复杂推理前移到 memory construction，属于“存前整理”，和巩固部分重叠 |
 | **Recursively Summarizing...** | Neurocomputing 2025 / arXiv 2023 | 中高 | 递归摘要形成长期对话记忆，是最早的“简化版巩固”路线之一 |
 
 这意味着：
 
-**“异步整理 + 层级抽象 + 摘要压缩”这一类最直觉的故事，已经有人在讲了。**
+**“时间层级巩固 / 睡眠式离线巩固 / 存前推理 / 写入时在线综合”这几类直觉故事，已经都有人在讲。**
 
 ---
 
@@ -85,8 +85,8 @@
 
 这会和下面几篇高度重叠：
 - TiMem
-- SimpleMem
 - LightMem
+- PREMem
 - Recursive Summarization
 
 #### 2. “把短期记忆整理成分层树或层级摘要”
@@ -216,7 +216,7 @@ LoCoMo 和 LongMemEval 都很重要，但它们主要还是测：
 - 每条长期记忆都能追溯到来源事件
 - 抽象和压缩不是黑盒
 
-这是对 SimpleMem / LightMem / TiMem 很好的差异化。
+这是对 TiMem / LightMem / PREMem / SimpleMem 都成立的差异化。
 
 ### 方向 2：reconsolidation
 
