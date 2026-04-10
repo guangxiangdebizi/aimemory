@@ -14,6 +14,11 @@
 4. [04_EVENT_SEGMENTATION_PLUS_STRUCTURE.md](04_EVENT_SEGMENTATION_PLUS_STRUCTURE.md)
 5. [05_MULTIMODAL_EMBODIED_MEMORY.md](05_MULTIMODAL_EMBODIED_MEMORY.md)
 
+如果你想先看更直观的路线图，而不是先啃长文档：
+
+- [consolidation/VISUAL_RESEARCH_MAP.md](consolidation/VISUAL_RESEARCH_MAP.md)  
+  这份文件把“现有研究覆盖到哪”和“你还能往哪拓展”画成 Mermaid 图。
+
 ---
 
 ## 五个方向，一句话版
@@ -58,4 +63,3 @@
 1. 先读 `B`
 2. 再读 `C`
 3. 如果想要更工程、更组合创新，再读 `D`
-
